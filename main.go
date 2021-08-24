@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	// "regexp"
+	"regexp"
 	"strings"
 )
 
 var (
-// c     = regexp.MustCompile(`^([01]{7})*`)
-// d =
-// j =
+	r = regexp.MustCompile(`^(.{1}).*`)
 )
 
 // A instruction: @value
@@ -22,7 +20,40 @@ var (
 // dest = comp; jump
 
 func main() {
-	cAbsPath, _ := filepath.Abs("./tables/cInstructions.txt")
+	// cInstruction := tableParser("./tables/cInstructions.txt")
+	// cDestination := tableParser("./tables/cInstDestination.txt")
+	// cJump := tableParser("./tables/cJump.txt")
+	// fmt.Println(cInstruction)
+	// fmt.Println(cDestination)
+	// fmt.Println(cJump)
+
+	// parse progTest
+	prog, _ := filepath.Abs("./progTest/Add.asm")
+	progData, _ := ioutil.ReadFile(prog)
+	progText := string(progData)
+
+	// fmt.Println(progText)
+	for _, line := range strings.Split(progText, "\n") {
+		if len(line) > 0 {
+			firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
+			// fmt.Println(firstChar)
+
+			// will need to add case "(" and "0" later on
+			switch firstChar {
+			case "@":
+				fmt.Println("@: ", line)
+			case "M", "A", "D":
+				fmt.Println("A or M or D: ", line)
+			default:
+				fmt.Println("empty or comm: ", line)
+			}
+		}
+	}
+
+}
+
+func tableParser(filename string) map[string]string {
+	cAbsPath, _ := filepath.Abs(filename)
 	cDat, _ := ioutil.ReadFile(cAbsPath)
 	cText := string(cDat)
 
@@ -39,6 +70,5 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(cData)
-	fmt.Printf("cool: %v\n", cData["M-1"])
+	return cData
 }

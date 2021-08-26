@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	// "reflect"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -32,6 +34,7 @@ func main() {
 	progData, _ := ioutil.ReadFile(prog)
 	progText := string(progData)
 
+	// var binary string
 	// fmt.Println(progText)
 	for _, line := range strings.Split(progText, "\n") {
 		if len(line) > 0 {
@@ -41,7 +44,13 @@ func main() {
 			// will need to add case "(" and "0" later on
 			switch firstChar {
 			case "@":
-				fmt.Println("@: ", line)
+				i, err := strconv.Atoi(strings.TrimSpace(line[1:]))
+				if err != nil {
+					fmt.Println(err)
+				}
+				b := set16Bits(strconv.FormatInt(int64(i), 2))
+				// fmt.Println(reflect.TypeOf(b))
+				fmt.Println(b)
 			case "M", "A", "D":
 				fmt.Println("A or M or D: ", line)
 			default:
@@ -50,6 +59,17 @@ func main() {
 		}
 	}
 
+}
+
+func set16Bits(s string) string {
+	if len(s) < 16 {
+		for i := len(s); i < 16; i++ {
+			s = "0" + s
+		}
+		return s
+	} else {
+		return s
+	}
 }
 
 func tableParser(filename string) map[string]string {

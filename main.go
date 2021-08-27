@@ -12,6 +12,7 @@ import (
 
 var (
 	r = regexp.MustCompile(`^(.{1}).*`)
+	i = regexp.MustCompile(`^(.*)=(.*)\s$`)
 )
 
 // A instruction: @value
@@ -22,11 +23,9 @@ var (
 // dest = comp; jump
 
 func main() {
-	// cInstruction := tableParser("./tables/cInstructions.txt")
-	// cDestination := tableParser("./tables/cInstDestination.txt")
+	cInstruction := tableParser("./tables/cInstructions.txt")
+	cDestination := tableParser("./tables/cInstDestination.txt")
 	// cJump := tableParser("./tables/cJump.txt")
-	// fmt.Println(cInstruction)
-	// fmt.Println(cDestination)
 	// fmt.Println(cJump)
 
 	// parse progTest
@@ -34,8 +33,7 @@ func main() {
 	progData, _ := ioutil.ReadFile(prog)
 	progText := string(progData)
 
-	// var binary string
-	// fmt.Println(progText)
+	var binary strings.Builder
 	for _, line := range strings.Split(progText, "\n") {
 		if len(line) > 0 {
 			firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
@@ -48,23 +46,51 @@ func main() {
 				if err != nil {
 					fmt.Println(err)
 				}
-				b := set16Bits(strconv.FormatInt(int64(i), 2))
+				b := completeBitsFront(strconv.FormatInt(int64(i), 2), 16)
 				// fmt.Println(reflect.TypeOf(b))
-				fmt.Println(b)
+				// fmt.Println(b)
+				binary.WriteString(b)
+				binary.WriteString("\n")
+
 			case "M", "A", "D":
-				fmt.Println("A or M or D: ", line)
+				var sb strings.Builder
+				sb.WriteString("111")
+
+				c := i.FindAllStringSubmatch(line, -1)[0][2]
+				sb.WriteString(string(cInstruction[c]))
+
+				d := i.FindAllStringSubmatch(line, -1)[0][1]
+				sb.WriteString(string(cDestination[d]))
+
+				final := completeBitsBack(sb.String(), 16)
+				// fmt.Println(final)
+				binary.WriteString(final)
+				binary.WriteString("\n")
+
 			default:
 				fmt.Println("empty or comm: ", line)
 			}
 		}
 	}
-
+	fmt.Println("Binaries")
+	fmt.Println(binary.String())
 }
 
-func set16Bits(s string) string {
-	if len(s) < 16 {
-		for i := len(s); i < 16; i++ {
+func completeBitsFront(s string, lgt int) string {
+	if len(s) < lgt {
+		for i := len(s); i < lgt; i++ {
 			s = "0" + s
+		}
+		return s
+	} else {
+		return s
+	}
+}
+
+func completeBitsBack(s string, lgt int) string {
+	if len(s) < lgt {
+		for i := len(s); i < lgt; i++ {
+			s = s + "0"
 		}
 		return s
 	} else {

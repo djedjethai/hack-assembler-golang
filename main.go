@@ -13,7 +13,8 @@ import (
 
 var (
 	r = regexp.MustCompile(`^(.{1}).*`)
-	i = regexp.MustCompile(`^(.*)=(.*)\s$`)
+	i = regexp.MustCompile(`^(.*)=|;(.*)\s$`)
+	s = regexp.MustCompile(`^.*(;).*$`)
 )
 
 // A instruction: @value
@@ -24,34 +25,55 @@ var (
 // dest = comp; jump
 
 func main() {
-	cInstruction := tableParser("./tables/cInstructions.txt")
-	cDestination := tableParser("./tables/cInstDestination.txt")
+	// cInstruction := tableParser("./tables/cInstructions.txt")
+	// cDestination := tableParser("./tables/cInstDestination.txt")
 	// cJump := tableParser("./tables/cJump.txt")
 	// fmt.Println(cJump)
 
 	// parse progTest
-	prog, _ := filepath.Abs("./progTest/Add.asm")
+	// prog, _ := filepath.Abs("./progTest/Add.asm")
+	prog, _ := filepath.Abs("./progTest/MaxL.asm")
 	progData, _ := ioutil.ReadFile(prog)
 	progText := string(progData)
 
 	var binary strings.Builder
-	var sb strings.Builder
-	// var ref string // ref to previous ranged line
+	// var sb strings.Builder
+	var ref string // ref to previous ranged line
 	for _, line := range strings.Split(progText, "\n") {
 		if len(line) > 0 {
-			// fmt.Println(i % 2)
-			// if i%2 == 0 {
-			// 	ref = line
-			// } else {
-			// 	// if =
-			// 	// assembleNoJump
+			firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
 
-			// 	// if ;
-			// 	// assembleJump
-			// }
+			// fmt.Printf("grrrrrr: %v\n", s.MatchString(line))
+			// fmt.Println("the firssst: ", firstChar)
 
-			codeStrr := assembleNoJump(r, line, sb, cInstruction, cDestination)
-			binary.WriteString(codeStrr)
+			if firstChar == "@" {
+				ref = line
+			} else if ref != "" &&
+				s.MatchString(line) {
+				fmt.Println("In a: ", line)
+				ref = ""
+			} else if ref != "" {
+				fmt.Println("In b: ", line)
+				ref = ""
+			} else {
+				// fmt.Println("other cases: ", line)
+			}
+			// if line start @ save it
+			// break
+
+			// if saved line and the current line is ;
+			// consume the saved line(as jump) with the current one
+			// empty saved line
+			// break
+
+			// else if saved line assembleNoJump saved line and curent one
+			// empty saved line
+			// break
+
+			// else cunsume current assembleNoJump
+
+			// codeStrr := assembleNoJump(r, line, sb, cInstruction, cDestination)
+			// binary.WriteString(codeStrr)
 		}
 	}
 	fmt.Println("Binaries")

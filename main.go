@@ -30,15 +30,60 @@ func main() {
 
 	// parse progTest
 	// prog, _ := filepath.Abs("./progTest/Add.asm")
-	prog, _ := filepath.Abs("./progTest/MaxL.asm")
+	// prog, _ := filepath.Abs("./progTest/MaxL.asm")
+	// prog, _ := filepath.Abs("./progTest/PongL.asm")
+	prog, _ := filepath.Abs("./progTest/Max.asm")
+
 	progData, _ := ioutil.ReadFile(prog)
 	progText := string(progData)
+     	
+	// first parse file to identify var
+	// var count int // start at 0
+	for _, line := range strings.Split(progText, "\n") {
+		
+		// to the var table
+		// add @R0 till @R15 with mapped bin value
 
+		if len(line) > 0 {
+			switch firstChar {
+			case "(":
+			// get VARNAME
+			// get count value 
+			// add to table Var
+			// map VARNAME to count in Bin
+
+			case MatchString("@{"\d"*}"):
+			// get varname
+			// check if exist in table Var
+			// if not: add after the last one and increase last value ++
+			// count++
+
+			// case "M", "A", "D", "@": // ??
+ 			case "/", ""\s"":
+			
+ 			
+			default:
+ 			// count++
+ 			}
+ 		}
+
+	}
+
+	// 
 	for _, line := range strings.Split(progText, "\n") {
 		if len(line) > 0 {
 			firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
 
-			if firstChar == "@" {
+			if MatchString("@R{0-15}"){
+				// get number
+				// parse table R
+				// get binary from table
+			} else if MatchString("@{"\d"*}"){
+				// get var
+				// parse table Var 
+				// get corresp bin num from table
+
+			} else if firstChar == "@" {
 				codeStrr = assembleAddress(line, sb)
 				binary.WriteString(codeStrr)
 
@@ -152,73 +197,160 @@ func tableParser(filename string) map[string]string {
 }
 
 // =============================================================
-
-// func assembleJump(r *regexp.Regexp, line string, sb strings.Builder, cInstruction map[string]string, cJump map[string]string) string {
-// 	firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
-// 	switch firstChar {
-// 	case "@":
-// 		// fmt.Println("ahhh: ", line)
-// 		i, err := strconv.Atoi(strings.TrimSpace(line[1:]))
-// 		if err != nil {
-// 			fmt.Println(err)
+// package main
+//
+// import (
+// 	"fmt"
+// 	"io/ioutil"
+// 	"path/filepath"
+// 	// "reflect"
+// 	"log"
+// 	"regexp"
+// 	"strconv"
+// 	"strings"
+// )
+//
+// var (
+// 	r        = regexp.MustCompile(`^(.{1}).*`)
+// 	i        = regexp.MustCompile(`^(.*)=(.*)\s$`)
+// 	ii       = regexp.MustCompile(`^(.*);(.*)\s$`)
+// 	rj       = regexp.MustCompile(`^.*(;).*$`)
+// 	rd       = regexp.MustCompile(`^.*(=).*$`)
+// 	binary   strings.Builder
+// 	sb       strings.Builder
+// 	codeStrr string
+// )
+//
+// func main() {
+// 	cInstruction := tableParser("./tables/cInstructions.txt")
+// 	cDestination := tableParser("./tables/cInstDestination.txt")
+// 	cJump := tableParser("./tables/cJump.txt")
+// 	// fmt.Println(cJump)
+//
+// 	// parse progTest
+// 	// prog, _ := filepath.Abs("./progTest/Add.asm")
+// 	// prog, _ := filepath.Abs("./progTest/MaxL.asm")
+// 	// prog, _ := filepath.Abs("./progTest/PongL.asm")
+// 	prog, _ := filepath.Abs("./progTest/Max.asm")
+//
+// 	progData, _ := ioutil.ReadFile(prog)
+// 	progText := string(progData)
+//
+// 	for _, line := range strings.Split(progText, "\n") {
+// 		if len(line) > 0 {
+// 			firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
+//
+// 			if firstChar == "@" {
+// 				codeStrr = assembleAddress(line, sb)
+// 				binary.WriteString(codeStrr)
+//
+// 			} else if rj.MatchString(line) {
+// 				codeStrr = assembleJump(line, sb, cInstruction, cJump)
+// 				binary.WriteString(codeStrr)
+//
+// 			} else if rd.MatchString(line) {
+// 				codeStrr = assembleNoJump(line, sb, cInstruction, cDestination)
+// 				binary.WriteString(codeStrr)
+//
+// 			} else {
+// 				fmt.Println("other cases: ", line)
+// 			}
 // 		}
-// 		b := completeBitsFront(strconv.FormatInt(int64(i), 2), 16)
-// 		// fmt.Println(reflect.TypeOf(b))
-// 		sb.WriteString(b)
-// 		sb.WriteString("\n")
-//
-// 		return sb.String()
-// 	case "M", "A", "D", "0":
-// 		sb.WriteString("111")
-//
-// 		// same block(no jump)
-// 		c := i.FindAllStringSubmatch(line, -1)[0][1]
-// 		sb.WriteString(string(cInstruction[c]))
-// 		sb.WriteString(string("000"))
-// 		j := i.FindAllStringSubmatch(line, -1)[0][2]
-// 		sb.WriteString(string(cJump[j]))
-//
-// 		return sb.String()
-// 	default:
-// 		// fmt.Println("empty or comm: ", line)
-// 		return ""
 // 	}
-//
+// 	fmt.Println("Binaries")
+// 	codeStrr = binary.String()
+// 	fmt.Println(codeStrr)
+// 	codeBin := []byte(codeStrr)
+// 	if err := ioutil.WriteFile("Add.hack", codeBin, 0777); err != nil {
+// 		log.Fatal(err)
+// 	}
 // }
 //
-// func assembleNoJump(r *regexp.Regexp, line string, sb strings.Builder, cInstruction map[string]string, cDestination map[string]string) string {
-// 	firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
-// 	// will need to add case "(" and "0" later on
-// 	switch firstChar {
-// 	case "@":
-// 		// fmt.Println("ahhh: ", line)
-// 		i, err := strconv.Atoi(strings.TrimSpace(line[1:]))
-// 		if err != nil {
-// 			fmt.Println(err)
-// 		}
-// 		b := completeBitsFront(strconv.FormatInt(int64(i), 2), 16)
-// 		// fmt.Println(reflect.TypeOf(b))
-// 		sb.WriteString(b)
-// 		sb.WriteString("\n")
-//
-// 		return sb.String()
-// 	case "M", "A", "D":
-// 		sb.WriteString("111")
-//
-// 		// same block(no jump)
-// 		c := i.FindAllStringSubmatch(line, -1)[0][2]
-// 		sb.WriteString(string(cInstruction[c]))
-//
-// 		d := i.FindAllStringSubmatch(line, -1)[0][1]
-// 		sb.WriteString(string(cDestination[d]))
-//
-// 		final := completeBitsBack(sb.String(), 16)
-//
-// 		return final
-// 	default:
-// 		// fmt.Println("empty or comm: ", line)
-// 		return ""
+// func assembleAddress(line string, sb strings.Builder) string {
+// 	i, err := strconv.Atoi(strings.TrimSpace(line[1:]))
+// 	if err != nil {
+// 		fmt.Println(err)
 // 	}
+// 	b := completeBitsFront(strconv.FormatInt(int64(i), 2), 16)
+// 	// fmt.Println(reflect.TypeOf(b))
+// 	sb.WriteString(b)
+// 	sb.WriteString("\n")
+//
+// 	return sb.String()
+// }
+//
+// func assembleJump(line string, sb strings.Builder, cInstruction map[string]string, cJump map[string]string) string {
+// 	sb.WriteString("111")
+//
+// 	c := ii.FindAllStringSubmatch(line, -1)[0][1]
+//
+// 	sb.WriteString(string(cInstruction[c]))
+//
+// 	sb.WriteString(string("000"))
+//
+// 	j := ii.FindAllStringSubmatch(line, -1)[0][2]
+//
+// 	sb.WriteString(string(cJump[j]))
+// 	sb.WriteString("\n")
+//
+// 	return sb.String()
+// }
+//
+// func assembleNoJump(line string, sb strings.Builder, cInstruction map[string]string, cDestination map[string]string) string {
+// 	sb.WriteString("111")
+//
+// 	c := i.FindAllStringSubmatch(line, -1)[0][2]
+// 	sb.WriteString(string(cInstruction[c]))
+//
+// 	d := i.FindAllStringSubmatch(line, -1)[0][1]
+// 	sb.WriteString(string(cDestination[d]))
+//
+// 	final := completeBitsBack(sb.String(), 16)
+//
+// 	return final
+// }
+//
+// func completeBitsFront(s string, lgt int) string {
+// 	if len(s) < lgt {
+// 		for i := len(s); i < lgt; i++ {
+// 			s = "0" + s
+// 		}
+// 		return s
+// 	} else {
+// 		return s
+// 	}
+// }
+//
+// func completeBitsBack(s string, lgt int) string {
+// 	if len(s) < lgt {
+// 		for i := len(s); i < lgt; i++ {
+// 			s = s + "0"
+// 		}
+// 		return s + "\n"
+// 	} else {
+// 		return s + "\n"
+// 	}
+// }
+//
+// func tableParser(filename string) map[string]string {
+// 	cAbsPath, _ := filepath.Abs(filename)
+// 	cDat, _ := ioutil.ReadFile(cAbsPath)
+// 	cText := string(cDat)
+//
+// 	// set cInstructions into a map
+// 	cData := make(map[string]string)
+// 	for _, line := range strings.Split(cText, "\n") {
+// 		var ref string
+// 		for i, value := range strings.Split(line, ":") {
+// 			if i == 0 {
+// 				ref = value
+// 			}
+// 			if i == 1 {
+// 				cData[ref] = value
+// 			}
+// 		}
+// 	}
+// 	return cData
 // }
 
 // =========================================================

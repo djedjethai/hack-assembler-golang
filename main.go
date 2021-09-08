@@ -7,7 +7,7 @@ import (
 	// "reflect"
 	// "log"
 	"regexp"
-	// "strconv"
+	"strconv"
 	"strings"
 )
 
@@ -21,17 +21,20 @@ var (
 	// sb       strings.Builder
 	// codeStrr string
 	// vr      = regexp.MustCompile(`^@R[(0-15)]$`)
-	// dv = regexp.MustCompile(`^\((.*)\)\s?$`)
-	dv = regexp.MustCompile(`^\((.*)\).*$`)
-	vv = regexp.MustCompile(`^\s?@([A-Z]+)\s?$`)
-	// vv = regexp.MustCompile(`^\s?@([A-Z]+)\s?((\/){2})?$`)
+	dv               = regexp.MustCompile(`^\s?\((.*)\).*$`)
+	vv               = regexp.MustCompile(`^\s?@([A-Z]+)[^$._0-9]*$`)
+	le               = regexp.MustCompile(`^\s+|\s?\/\/.*$`)
+	destVar          = make(map[string]string)
+	varVar           = make(map[string]string)
+	countDestVar int = 0 // start at 0
+	countVarVar  int = 0 // start at 0
 )
 
 func main() {
 	// cInstruction := tableParser("./tables/cInstructions.txt")
 	// cDestination := tableParser("./tables/cInstDestination.txt")
 	// cJump := tableParser("./tables/cJump.txt")
-	// rVar := tableParser("./tables/rVariable.txt")
+	rVar := tableParser("./tables/rVariable.txt")
 	// fmt.Println(cJump)
 
 	// parse progTest
@@ -44,10 +47,6 @@ func main() {
 	progText := string(progData)
 
 	// first parse file to identify var
-	// var destVar = make(map[string]string)
-	// var varVar = make(map[string]string)
-	// var countDestVar int // start at 0
-	// var countVarVar int // start at 0
 	for _, line := range strings.Split(progText, "\n") {
 
 		// to the var table
@@ -57,63 +56,68 @@ func main() {
 			if dv.MatchString(line) {
 				fmt.Println("dv match: ", line)
 				d := dv.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("dv match val: ", d)
-				// get VARNAME
-				// get count value
 				// add to table Var
-				// destVar[varname] = countDestVar // in binary
+				destVar[d] = completeBitsFront(strconv.FormatInt(int64(countDestVar), 2), 16) // in binary
 
 			} else if vv.MatchString(line) {
-				fmt.Println("vv match: ", line)
 				v := vv.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("vv match val: ", v)
-				// get varname
 				// check if exist in table Var
-				// _, ok := varVar[varname]; !ok {
-				// 	varVar[varname] = countVarVar // in binary
-				// 	countVarVar++
-				// }
-				// if not: add after the last one and increase last value ++
-				// countDestVar++
+				if _, ok := varVar[v]; !ok {
+					varVar[v] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
+					countVarVar++
+				}
+				countDestVar++
+			} else if le.MatchString(line) {
+				fmt.Println("line empty oor comm")
 
 			} else {
 				fmt.Println("else: ", line)
-				// countDestVar++
+				countDestVar++
 			}
 
 		}
 	}
-	//
-	// for _, line := range strings.Split(progText, "\n") {
-	// 	if len(line) > 0 {
-	// 		firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
+	fmt.Println(destVar)
+	fmt.Println("varVar: ", varVar)
 
-	// 		if MatchString("@R{0-15}"){
-	// 			// get number
-	// 			// parse table R
-	// 			// get binary from table
-	// 		} else if MatchString("@{"\d"*}"){
-	// 			// get var
-	// 			// parse table Var
-	// 			// get corresp bin num from table
+	rv := regexp.MustCompile(`^\s?@R([0-9]{1,2}).*$`)
+	for _, line := range strings.Split(progText, "\n") {
+		if len(line) > 0 {
+			// if not use DELETE regexp
+			// firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
+			// fmt.Println("ooo")
+			if rv.MatchString(line) {
 
-	// 		} else if firstChar == "@" {
-	// 			codeStrr = assembleAddress(line, sb)
-	// 			binary.WriteString(codeStrr)
+				v := rv.FindAllStringSubmatch(line, -1)[0][1]
+				// parse table R
+				b := rVar[v]
+				fmt.Println("endd: ", b)
+				// add b to string
+				// binary.WriteString(b)
+			}
+			// } else if MatchString("@{"\d"*}"){
+			// 	// get var
+			// 	// parse table Var
+			// 	// get corresp bin num from table
 
-	// 		} else if rj.MatchString(line) {
-	// 			codeStrr = assembleJump(line, sb, cInstruction, cJump)
-	// 			binary.WriteString(codeStrr)
+			// // change here set regex match with @[0-9]+
+			// } else if firstChar == "@" {
+			// 	codeStrr = assembleAddress(line, sb)
+			// 	binary.WriteString(codeStrr)
 
-	// 		} else if rd.MatchString(line) {
-	// 			codeStrr = assembleNoJump(line, sb, cInstruction, cDestination)
-	// 			binary.WriteString(codeStrr)
+			// } else if rj.MatchString(line) {
+			// 	codeStrr = assembleJump(line, sb, cInstruction, cJump)
+			// 	binary.WriteString(codeStrr)
 
-	// 		} else {
-	// 			fmt.Println("other cases: ", line)
-	// 		}
-	// 	}
-	// }
+			// } else if rd.MatchString(line) {
+			// 	codeStrr = assembleNoJump(line, sb, cInstruction, cDestination)
+			// 	binary.WriteString(codeStrr)
+
+			// } else {
+			// 	fmt.Println("other cases: ", line)
+			// }
+		}
+	}
 	// fmt.Println("Binaries")
 	// codeStrr = binary.String()
 	// fmt.Println(codeStrr)
@@ -167,16 +171,17 @@ func main() {
 // 	return final
 // }
 //
-// func completeBitsFront(s string, lgt int) string {
-// 	if len(s) < lgt {
-// 		for i := len(s); i < lgt; i++ {
-// 			s = "0" + s
-// 		}
-// 		return s
-// 	} else {
-// 		return s
-// 	}
-// }
+func completeBitsFront(s string, lgt int) string {
+	if len(s) < lgt {
+		for i := len(s); i < lgt; i++ {
+			s = "0" + s
+		}
+		return s
+	} else {
+		return s
+	}
+}
+
 //
 // func completeBitsBack(s string, lgt int) string {
 // 	if len(s) < lgt {
@@ -189,26 +194,26 @@ func main() {
 // 	}
 // }
 //
-// func tableParser(filename string) map[string]string {
-// 	cAbsPath, _ := filepath.Abs(filename)
-// 	cDat, _ := ioutil.ReadFile(cAbsPath)
-// 	cText := string(cDat)
-//
-// 	// set cInstructions into a map
-// 	cData := make(map[string]string)
-// 	for _, line := range strings.Split(cText, "\n") {
-// 		var ref string
-// 		for i, value := range strings.Split(line, ":") {
-// 			if i == 0 {
-// 				ref = value
-// 			}
-// 			if i == 1 {
-// 				cData[ref] = value
-// 			}
-// 		}
-// 	}
-// 	return cData
-// }
+func tableParser(filename string) map[string]string {
+	cAbsPath, _ := filepath.Abs(filename)
+	cDat, _ := ioutil.ReadFile(cAbsPath)
+	cText := string(cDat)
+
+	// set cInstructions into a map
+	cData := make(map[string]string)
+	for _, line := range strings.Split(cText, "\n") {
+		var ref string
+		for i, value := range strings.Split(line, ":") {
+			if i == 0 {
+				ref = value
+			}
+			if i == 1 {
+				cData[ref] = value
+			}
+		}
+	}
+	return cData
+}
 
 // =============================================================
 // package main

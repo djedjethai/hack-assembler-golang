@@ -12,17 +12,21 @@ D=M
 @R1
 D=D-M
 @OUTPUT.FIRST
-D;JGT
+	@OUTPUT.$FIRST
+@OUTPUT.$small
+	@2
+@665 // comment
+ 	D;null
 @R1
-D=M
+	D=M
 @OUTPUT_D
-0;JMP
+0;JMP // comment
 (OUTPUT_FIRST) // some comm2222
 @R0
-D=M
+D=M  	// grrrrrr
 (OUTPUT_D)
 @R2
 M=D
 (INFINITE_LOOP)
 @INFINITE_LOOP
-0;JMP
+0;JMP 

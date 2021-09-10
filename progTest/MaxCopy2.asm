@@ -3,7 +3,7 @@
 		// somme comments2
   // somme comments2
 	@R0
-@sys.init
+// @sys.init
    D=M              // D = first number
 	@R1
 		D=D-M            // D = first number - second number
@@ -14,7 +14,7 @@
 D=A
 @95
 (RET_ADDRESS_CALL334)
-@THAT
+// @THAT
 	D=M              // D = second number
 	@OUTPUT_D
 	0;JMP            // goto output_d

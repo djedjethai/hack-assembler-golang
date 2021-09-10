@@ -43,10 +43,10 @@ func main() {
 	// parse progTest
 	// prog, _ := filepath.Abs("./progTest/Add.asm")
 	// prog, _ := filepath.Abs("./progTest/MaxL.asm")
-	// prog, _ := filepath.Abs("./progTest/MaxCopy2.asm")
+	prog, _ := filepath.Abs("./progTest/MaxCopy2.asm")
 	// prog, _ := filepath.Abs("./progTest/Max.asm")
 	// prog, _ := filepath.Abs("./progTest/PongL.asm")
-	prog, _ := filepath.Abs("./progTest/Pong.asm")
+	// prog, _ := filepath.Abs("./progTest/Pong.asm")
 	// prog, _ := filepath.Abs("./progTest/MaxCopy.asm")
 
 	progData, _ := ioutil.ReadFile(prog)
@@ -114,8 +114,8 @@ func main() {
 				b = rVar[v]
 				// fmt.Println("endd: ", b)
 				// add b to string
-				binary.WriteString(strings.TrimSpace(line))
-				binary.WriteString("\n")
+				// binary.WriteString(strings.TrimSpace(line))
+				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
 				// get variable saved at previous parsing
@@ -126,8 +126,8 @@ func main() {
 				b := varVar[v]
 				fmt.Println("binary match for var: ", b)
 				// add b to string
-				binary.WriteString(strings.TrimSpace(line))
-				binary.WriteString("\n")
+				// binary.WriteString(strings.TrimSpace(line))
+				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
 				// if b, ok := varVar[v]; ok {
@@ -143,23 +143,23 @@ func main() {
 				vi, _ := strconv.Atoi(v)
 				b = completeBitsFront(strconv.FormatInt(int64(vi), 2), 16) // in binary
 				// fmt.Println("in get addresses ni bin: ", b)
-				binary.WriteString(strings.TrimSpace(line))
-				binary.WriteString("\n")
+				// binary.WriteString(strings.TrimSpace(line))
+				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
 				// get binary from jumping command (with ;)
 			} else if rj.MatchString(line) {
 				b = assembleJump(line, sb, cInstruction, cJump)
 				// fmt.Println("juummp: !!!!! ", b)
-				binary.WriteString(strings.TrimSpace(line))
-				binary.WriteString("\n")
+				// binary.WriteString(strings.TrimSpace(line))
+				// binary.WriteString("\n")
 				binary.WriteString(b)
 				// get binary from no Jumping command (with =)
 			} else if rd.MatchString(line) {
 				b = assembleNoJump(line, sb, cInstruction, cDestination)
 				// fmt.Println("no jummmppp: ", b)
-				binary.WriteString(strings.TrimSpace(line))
-				binary.WriteString("\n")
+				// binary.WriteString(strings.TrimSpace(line))
+				// binary.WriteString("\n")
 				binary.WriteString(b)
 			} else {
 				fmt.Println("in else :::", line)

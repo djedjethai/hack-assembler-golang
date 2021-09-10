@@ -11,9 +11,9 @@
 D=M
 @R1
 D=D-M
-@OUTPUT.FIRST
-	@OUTPUT.$FIRST
-@OUTPUT.$small
+// @OUTPUT.FIRST
+// 	@OUTPUT.$FIRST
+// @OUTPUT.$small
 	@2
 @665 // comment
  	D;null

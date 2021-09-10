@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	// "reflect"
-	// "log"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,15 +16,16 @@ var (
 	// i        = regexp.MustCompile(`^(.*)=(.*)\s$`)
 	// ii = regexp.MustCompile(`^(.*);(.*)\s$`)
 	// rj = regexp.MustCompile(`^.*(;).*$`)
-	rj = regexp.MustCompile(`^\s?(.{1,3});([a-zA-Z]{1,4}).*$`)
-	rd = regexp.MustCompile(`^\s?([a-zA-Z]{1,4})=(.{1,3}).*$`)
-	// binary   strings.Builder
-	sb strings.Builder
+	rj     = regexp.MustCompile(`^\s*?(.{1,3});([a-zA-Z]{1,4}).*$`)
+	rd     = regexp.MustCompile(`^\s*?([a-zA-Z]{1,4})=(.{1,3}).*$`)
+	binary strings.Builder
+	sb     strings.Builder
 	// codeStrr string
 	// vr      = regexp.MustCompile(`^@R[(0-15)]$`)
-	dv = regexp.MustCompile(`^\s?\((.*)\).*$`)
-	vv = regexp.MustCompile(`^\s?@([A-Z]+)[^$._0-9]*$`)
-	le = regexp.MustCompile(`^\s+|\s?\/\/.*$`)
+	dv = regexp.MustCompile(`^\s*?\((.*)\).*$`)
+	vv = regexp.MustCompile(`^\s*?@([A-Z]+)[^$._0-9]*$`)
+	// le = regexp.MustCompile(`^\s*?\/\/.*$`)
+	le = regexp.MustCompile(`^\s*?(\/\/.*|\s*)$`)
 	// destVar          = make(map[string]string)
 	varVar           = make(map[string]string)
 	countDestVar int = 0 // start at 0
@@ -41,8 +42,11 @@ func main() {
 	// parse progTest
 	// prog, _ := filepath.Abs("./progTest/Add.asm")
 	// prog, _ := filepath.Abs("./progTest/MaxL.asm")
+	// prog, _ := filepath.Abs("./progTest/MaxCopy2.asm")
+	// prog, _ := filepath.Abs("./progTest/Max.asm")
 	// prog, _ := filepath.Abs("./progTest/PongL.asm")
-	prog, _ := filepath.Abs("./progTest/MaxCopy.asm")
+	prog, _ := filepath.Abs("./progTest/Pong.asm")
+	// prog, _ := filepath.Abs("./progTest/MaxCopy.asm")
 
 	progData, _ := ioutil.ReadFile(prog)
 	progText := string(progData)
@@ -54,12 +58,16 @@ func main() {
 		// add @R0 till @R15 with mapped bin value
 
 		if len(line) > 0 {
+			fmt.Println("grrrr: ================== ", line)
+			// get destination var
 			if dv.MatchString(line) {
 				fmt.Println("dv match: ", line)
 				d := dv.FindAllStringSubmatch(line, -1)[0][1]
+				fmt.Println("dv match num: ", d)
+				fmt.Println("dv match num: ", countDestVar)
 				// add to table Var
 				varVar[d] = completeBitsFront(strconv.FormatInt(int64(countDestVar), 2), 16) // in binary
-
+				// get named var
 			} else if vv.MatchString(line) {
 				v := vv.FindAllStringSubmatch(line, -1)[0][1]
 				// check if exist in table Var
@@ -67,77 +75,86 @@ func main() {
 					varVar[v] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
 					countVarVar++
 				}
+				fmt.Println("get named var count: ", countDestVar)
 				countDestVar++
 			} else if le.MatchString(line) {
 				fmt.Println("line empty oor comm")
 
 			} else {
-				fmt.Println("else: ", line)
+				// fmt.Println("else: ", line)
+				fmt.Println("in else count: ", countDestVar)
 				countDestVar++
 			}
 
 		}
 	}
 	// fmt.Println(destVar)
-	fmt.Println("varVar: ", varVar)
+	// fmt.Println("varVar: ", varVar)
 
-	rv := regexp.MustCompile(`^\s?@R([0-9]{1,2}).*$`)
+	rv := regexp.MustCompile(`^\s*?@R([0-9]{1,2}).*$`)
 	// gv := regexp.MustCompile(`^\s?@\D{1,}([A-Za-z_.$]*).*`)
-	gv := regexp.MustCompile(`^\s?@(\D[A-Za-z._$]*).*`)
-	ga := regexp.MustCompile(`^\s?@(\d*).*`)
+	gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*).*`)
+	ga := regexp.MustCompile(`^\s*?@(\d*).*`)
+	var v string
+	var b string
 	for _, line := range strings.Split(progText, "\n") {
 		if len(line) > 0 {
 			// if not use DELETE regexp
 			// firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
 			// fmt.Println("ooo")
+			// get variable @Rn
 			if rv.MatchString(line) {
 
-				v := rv.FindAllStringSubmatch(line, -1)[0][1]
+				v = rv.FindAllStringSubmatch(line, -1)[0][1]
 				// parse table R
-				b := rVar[v]
-				fmt.Println("endd: ", b)
+				b = rVar[v]
+				// fmt.Println("endd: ", b)
 				// add b to string
-				// binary.WriteString(b)
+				binary.WriteString(b)
+				binary.WriteString("\n")
+				// get variable saved at previous parsing
 			} else if gv.MatchString(line) {
 				// get var
-				v := gv.FindAllStringSubmatch(line, -1)[0][1]
+				v = gv.FindAllStringSubmatch(line, -1)[0][1]
 				// parse table Var
-				b := varVar[v]
-				fmt.Println("binary match for var: ", b)
-				// add b to string
-				// binary.WriteString(b)
-
+				if b, ok := varVar[v]; ok {
+					fmt.Println("binary match for var: ", b)
+					// add b to string
+					binary.WriteString(b)
+					binary.WriteString("\n")
+				}
+				// get address from @num
 			} else if ga.MatchString(line) {
-				v := ga.FindAllStringSubmatch(line, -1)[0][1]
+				v = ga.FindAllStringSubmatch(line, -1)[0][1]
 				fmt.Println("in get addresses: ", v)
 				vi, _ := strconv.Atoi(v)
-				b := completeBitsFront(strconv.FormatInt(int64(vi), 2), 16) // in binary
-				fmt.Println("in get addresses ni bin: ", b)
-				// binary.WriteString(b)
+				b = completeBitsFront(strconv.FormatInt(int64(vi), 2), 16) // in binary
+				// fmt.Println("in get addresses ni bin: ", b)
+				binary.WriteString(b)
+				binary.WriteString("\n")
+				// get binary from jumping command (with ;)
 			} else if rj.MatchString(line) {
-				b := assembleJump(line, sb, cInstruction, cJump)
-				fmt.Println("juummp: !!!!! ", b)
-
+				b = assembleJump(line, sb, cInstruction, cJump)
+				// fmt.Println("juummp: !!!!! ", b)
+				binary.WriteString(b)
+				// get binary from no Jumping command (with =)
 			} else if rd.MatchString(line) {
-				b := assembleNoJump(line, sb, cInstruction, cDestination)
-				fmt.Println("no jummmppp: ", b)
-				// 	binary.WriteString(codeStrr)
+				b = assembleNoJump(line, sb, cInstruction, cDestination)
+				// fmt.Println("no jummmppp: ", b)
+				binary.WriteString(b)
 			} else {
 				fmt.Println("in else :::", line)
 			}
-
-			// } else {
-			// 	fmt.Println("other cases: ", line)
-			// } binary.WriteString(codeStrr)
 		}
 	}
-	// fmt.Println("Binaries")
-	// codeStrr = binary.String()
+	fmt.Println("Binaries")
+	fmt.Println(varVar)
+	codeStrr := binary.String()
 	// fmt.Println(codeStrr)
-	// codeBin := []byte(codeStrr)
-	// if err := ioutil.WriteFile("Add.hack", codeBin, 0777); err != nil {
-	// 	log.Fatal(err)
-	// }
+	codeBin := []byte(codeStrr)
+	if err := ioutil.WriteFile("Add.hack", codeBin, 0777); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // func assembleAddress(line string, sb strings.Builder) string {

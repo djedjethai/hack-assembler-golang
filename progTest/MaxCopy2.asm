@@ -10,11 +10,17 @@
 	@OUTPUT_FIRST
 	D;JGT            // if D>0 (first is greater) goto output_first
 	@R1
+@RET_ADDRESS_CALL334
+D=A
+@95
+(RET_ADDRESS_CALL334)
+@THAT
 	D=M              // D = second number
 	@OUTPUT_D
 	0;JMP            // goto output_d
 (OUTPUT_FIRST)
 	@R0             
+@THIS
 	D=M              // D = first number
 (OUTPUT_D)
 	@R2

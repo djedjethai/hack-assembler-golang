@@ -23,7 +23,8 @@ var (
 	// codeStrr string
 	// vr      = regexp.MustCompile(`^@R[(0-15)]$`)
 	dv = regexp.MustCompile(`^\s*?\((.*)\).*$`)
-	vv = regexp.MustCompile(`^\s*?@([A-Z]+)[^$._0-9]*$`)
+	// vv = regexp.MustCompile(`^\s*?@([A-Z]+)[^$._0-9]*$`)
+	vv = regexp.MustCompile(`^\s*?@([A-Za-z.]+)[^$_0-9]*$`)
 	// le = regexp.MustCompile(`^\s*?\/\/.*$`)
 	le = regexp.MustCompile(`^\s*?(\/\/.*|\s*)$`)
 	// destVar          = make(map[string]string)
@@ -63,26 +64,28 @@ func main() {
 			if dv.MatchString(line) {
 				fmt.Println("dv match: ", line)
 				d := dv.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("dv match num: ", d)
+				fmt.Println("dv match num: ", string(d))
 				fmt.Println("dv match num: ", countDestVar)
 				// add to table Var
 				varVar[d] = completeBitsFront(strconv.FormatInt(int64(countDestVar), 2), 16) // in binary
 				// get named var
 			} else if vv.MatchString(line) {
+				// fmt.Println("allo")
 				v := vv.FindAllStringSubmatch(line, -1)[0][1]
+				// fmt.Println("alala: ", v)
 				// check if exist in table Var
 				if _, ok := varVar[v]; !ok {
 					varVar[v] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
 					countVarVar++
 				}
-				fmt.Println("get named var count: ", countDestVar)
+				// fmt.Println("get named var count: ", countDestVar)
 				countDestVar++
 			} else if le.MatchString(line) {
 				fmt.Println("line empty oor comm")
 
 			} else {
 				// fmt.Println("else: ", line)
-				fmt.Println("in else count: ", countDestVar)
+				// fmt.Println("in else count: ", countDestVar)
 				countDestVar++
 			}
 
@@ -93,7 +96,8 @@ func main() {
 
 	rv := regexp.MustCompile(`^\s*?@R([0-9]{1,2}).*$`)
 	// gv := regexp.MustCompile(`^\s?@\D{1,}([A-Za-z_.$]*).*`)
-	gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*).*`)
+	// gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*).*`)
+	gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*[0-9]*).*`)
 	ga := regexp.MustCompile(`^\s*?@(\d*).*`)
 	var v string
 	var b string
@@ -110,6 +114,8 @@ func main() {
 				b = rVar[v]
 				// fmt.Println("endd: ", b)
 				// add b to string
+				binary.WriteString(strings.TrimSpace(line))
+				binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
 				// get variable saved at previous parsing
@@ -117,12 +123,19 @@ func main() {
 				// get var
 				v = gv.FindAllStringSubmatch(line, -1)[0][1]
 				// parse table Var
-				if b, ok := varVar[v]; ok {
-					fmt.Println("binary match for var: ", b)
-					// add b to string
-					binary.WriteString(b)
-					binary.WriteString("\n")
-				}
+				b := varVar[v]
+				fmt.Println("binary match for var: ", b)
+				// add b to string
+				binary.WriteString(strings.TrimSpace(line))
+				binary.WriteString("\n")
+				binary.WriteString(b)
+				binary.WriteString("\n")
+				// if b, ok := varVar[v]; ok {
+				// 	fmt.Println("binary match for var: ", b)
+				// 	// add b to string
+				// 	binary.WriteString(b)
+				// 	binary.WriteString("\n")
+				// }
 				// get address from @num
 			} else if ga.MatchString(line) {
 				v = ga.FindAllStringSubmatch(line, -1)[0][1]
@@ -130,17 +143,23 @@ func main() {
 				vi, _ := strconv.Atoi(v)
 				b = completeBitsFront(strconv.FormatInt(int64(vi), 2), 16) // in binary
 				// fmt.Println("in get addresses ni bin: ", b)
+				binary.WriteString(strings.TrimSpace(line))
+				binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
 				// get binary from jumping command (with ;)
 			} else if rj.MatchString(line) {
 				b = assembleJump(line, sb, cInstruction, cJump)
 				// fmt.Println("juummp: !!!!! ", b)
+				binary.WriteString(strings.TrimSpace(line))
+				binary.WriteString("\n")
 				binary.WriteString(b)
 				// get binary from no Jumping command (with =)
 			} else if rd.MatchString(line) {
 				b = assembleNoJump(line, sb, cInstruction, cDestination)
 				// fmt.Println("no jummmppp: ", b)
+				binary.WriteString(strings.TrimSpace(line))
+				binary.WriteString("\n")
 				binary.WriteString(b)
 			} else {
 				fmt.Println("in else :::", line)
@@ -148,7 +167,7 @@ func main() {
 		}
 	}
 	fmt.Println("Binaries")
-	fmt.Println(varVar)
+	// fmt.Println(varVar)
 	codeStrr := binary.String()
 	// fmt.Println(codeStrr)
 	codeBin := []byte(codeStrr)

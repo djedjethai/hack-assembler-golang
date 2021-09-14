@@ -3,13 +3,23 @@
 		// somme comments2
   // somme comments2
 	@R0
-// @sys.init
+@SP
+@sys.init
+@sys.0
+@ponggame.0
+@ponggame.u
    D=M              // D = first number
 	@R1
+@LCL
+	@R2
+	// @R
+	@R14
+	@RING
 		D=D-M            // D = first number - second number
 	@OUTPUT_FIRST
 	D;JGT            // if D>0 (first is greater) goto output_first
 	@R1
+@ARG
 @RET_ADDRESS_CALL334
 D=A
 @95
@@ -20,7 +30,7 @@ D=A
 	0;JMP            // goto output_d
 (OUTPUT_FIRST)
 	@R0             
-@THIS
+// @THIS
 	D=M              // D = first number
 (OUTPUT_D)
 	@R2

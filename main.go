@@ -1,5 +1,7 @@
 package main
 
+// sed -n '4710,4730p;4730q' Pong.asm > PongPonggameVar.asm
+
 import (
 	"fmt"
 	"io/ioutil"
@@ -19,9 +21,11 @@ var (
 	// codeStrr string
 	// vr      = regexp.MustCompile(`^@R[(0-15)]$`)
 	dv = regexp.MustCompile(`^\s*?\((.*)\).*$`)
-	// vv = regexp.MustCompile(`^\s*?@([A-Za-z.]+)[^$_0-9]*$`)
-	vv         = regexp.MustCompile(`^\s*?@([A-Za-z.]+[^$_0-9])*$`)
-	vvcomplete = regexp.MustCompile(`^\s*?@([A-Za-z.]+\.[0-9])*$`)
+	// vv = regexp.MustCompile(`^\s*?@([A-Za-z.]+[^$_0-9])*$`)
+	vv = regexp.MustCompile(`^\s*?@([^SP|LCL|ARG|THAT|THIS][A-Za-z.]+[^$_0-9])*$`)
+	// vvcomplete = regexp.MustCompile(`^\s*?@([A-Za-z.]+\.[0-9])*$`)
+	// vvcomplete = regexp.MustCompile(`^.*@(ponggame\.0).*$`)
+	vvcomplete = regexp.MustCompile(`^.*@([A-Za-z.]+\.[0-9]).*$`)
 	// vvstop = regexp.MustCompile(`^\s*?R.*$`)
 	// le = regexp.MustCompile(`^\s*?\/\/.*$`)
 	le = regexp.MustCompile(`^\s*?(\/\/.*|\s*)$`)
@@ -36,16 +40,18 @@ func main() {
 	cDestination := tableParser("./tables/cInstDestination.txt")
 	cJump := tableParser("./tables/cJump.txt")
 	rVar := tableParser("./tables/rVariable.txt")
+	thisThat := tableParser("./tables/thisThatTable.txt")
 	// fmt.Println(cJump)
 
 	// parse progTest
 	// prog, _ := filepath.Abs("./progTest/Add.asm")
 	// prog, _ := filepath.Abs("./progTest/MaxL.asm")
-	prog, _ := filepath.Abs("./progTest/MaxCopy2.asm")
+	// prog, _ := filepath.Abs("./progTest/MaxCopy2.asm")
 	// prog, _ := filepath.Abs("./progTest/Max.asm")
 	// prog, _ := filepath.Abs("./progTest/PongL.asm")
-	// prog, _ := filepath.Abs("./progTest/Pong.asm")
+	prog, _ := filepath.Abs("./progTest/Pong.asm")
 	// prog, _ := filepath.Abs("./progTest/PongTest.asm")
+	// prog, _ := filepath.Abs("./progTest/PongPonggameVar.asm")
 	// prog, _ := filepath.Abs("./progTest/MaxCopy.asm")
 
 	progData, _ := ioutil.ReadFile(prog)
@@ -54,17 +60,12 @@ func main() {
 	// first parse file to identify var
 	for _, line := range strings.Split(progText, "\n") {
 
-		// to the var table
-		// add @R0 till @R15 with mapped bin value
-
 		if len(line) > 0 {
 			fmt.Println("grrrr: ================== ", line)
 			// get destination var
 			if dv.MatchString(line) {
 				fmt.Println("dv match: ", line)
 				d := dv.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("dv match num: ", d)
-				fmt.Println("dv match num: ", countDestVar)
 				// add to table Var
 				varVar[strings.TrimSpace(d)] = completeBitsFront(strconv.FormatInt(int64(countDestVar), 2), 16) // in binary
 				// get named var
@@ -73,7 +74,7 @@ func main() {
 				v := vv.FindAllStringSubmatch(line, -1)[0][1]
 				fmt.Println("alala: ", v)
 				// check if exist in table Var
-				if _, ok := varVar[v]; !ok {
+				if _, ok := varVar[strings.TrimSpace(v)]; !ok {
 					varVar[strings.TrimSpace(v)] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
 					countVarVar++
 				}
@@ -85,7 +86,7 @@ func main() {
 				v := vvcomplete.FindAllStringSubmatch(line, -1)[0][1]
 				fmt.Println("alalaComplete: ", v)
 				// check if exist in table Var
-				if _, ok := varVar[v]; !ok {
+				if _, ok := varVar[strings.TrimSpace(v)]; !ok {
 					varVar[strings.TrimSpace(v)] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
 					countVarVar++
 				}
@@ -100,13 +101,13 @@ func main() {
 				// fmt.Println("in else count: ", countDestVar)
 				countDestVar++
 			}
-
 		}
 	}
 	// fmt.Println(destVar)
-	// fmt.Println("varVar: ", varVar)
+	fmt.Println("varVar: ", varVar)
 
 	rv := regexp.MustCompile(`^\s*?@R([0-9]{1,2}).*$`)
+	tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS).*$`)
 	// gv := regexp.MustCompile(`^\s?@\D{1,}([A-Za-z_.$]*).*`)
 	// gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*).*`)
 	gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*[0-9]*).*`)
@@ -118,9 +119,6 @@ func main() {
 	// ponggame := regexp.MustCompile(`^@ponggame.0*`)
 	for _, line := range strings.Split(progText, "\n") {
 		if len(line) > 0 {
-			// if not use DELETE regexp
-			// firstChar := r.FindAllStringSubmatch(line, -1)[0][1]
-			// fmt.Println("ooo")
 			// get variable @Rn
 			if rv.MatchString(line) {
 
@@ -133,11 +131,15 @@ func main() {
 				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
-				// get variable saved at previous parsing
-				// } else if ponggame.MatchString(line) {
-				// 	binary.WriteString(strings.TrimSpace(line))
-				// 	binary.WriteString("\n")
-				// 	binary.WriteString("00000000000000aa")
+				// get SP/LCL/ARG etc...
+			} else if tthat.MatchString(line) {
+
+				v = tthat.FindAllStringSubmatch(line, -1)[0][1]
+				// parse table thisThat
+				b = thisThat[strings.TrimSpace(v)]
+				// fmt.Println("this that: ", v)
+				binary.WriteString(b)
+				binary.WriteString("\n")
 
 			} else if gv.MatchString(line) {
 				// get var
@@ -155,7 +157,7 @@ func main() {
 			} else if ga.MatchString(line) {
 				v = ga.FindAllStringSubmatch(line, -1)[0][1]
 				fmt.Println("in get addresses: ", v)
-				vi, _ := strconv.Atoi(v)
+				vi, _ := strconv.Atoi(strings.TrimSpace(v))
 				b = completeBitsFront(strconv.FormatInt(int64(vi), 2), 16) // in binary
 				// fmt.Println("in get addresses ni bin: ", b)
 				// binary.WriteString(strings.TrimSpace(line))
@@ -176,19 +178,13 @@ func main() {
 				// binary.WriteString(strings.TrimSpace(line))
 				// binary.WriteString("\n")
 				binary.WriteString(b)
-
-				// } else if ponggame.MatchString(line) {
-				// 	binary.WriteString(strings.TrimSpace(line))
-				// 	binary.WriteString("\n")
-				// 	binary.WriteString("0000000000000000")
-
 			} else {
 				fmt.Println("in else :::", line)
 			}
 		}
 	}
 	fmt.Println("Binaries")
-	fmt.Println(varVar)
+	// fmt.Println(varVar)
 	codeStrr := binary.String()
 	// fmt.Println(codeStrr)
 	codeBin := []byte(codeStrr)

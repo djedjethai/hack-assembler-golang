@@ -82,16 +82,28 @@ func main() {
 				countDestVar++
 
 			} else if vvcomplete.MatchString(line) {
-				// fmt.Println("allo")
+				fmt.Println("allo")
 				v := vvcomplete.FindAllStringSubmatch(line, -1)[0][1]
 				fmt.Println("alalaComplete: ", v)
 				// check if exist in table Var
 				if _, ok := varVar[strings.TrimSpace(v)]; !ok {
 					varVar[strings.TrimSpace(v)] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
-					countVarVar++
+					// countVarVar++
 				}
-				// fmt.Println("get named var count: ", countDestVar)
+				fmt.Println("get named var count: ", countDestVar)
 				countDestVar++
+
+				// } else if vvcomplete.MatchString(line) {
+				// 	// fmt.Println("allo")
+				// 	v := vvcomplete.FindAllStringSubmatch(line, -1)[0][1]
+				// 	fmt.Println("alalaComplete: ", v)
+				// 	// check if exist in table Var
+				// 	if _, ok := varVar[strings.TrimSpace(v)]; !ok {
+				// 		varVar[strings.TrimSpace(v)] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
+				// 		// countVarVar++
+				// 	}
+				// 	// fmt.Println("get named var count: ", countDestVar)
+				// 	countDestVar++
 
 			} else if le.MatchString(line) {
 				fmt.Println("line empty oor comm")
@@ -107,7 +119,9 @@ func main() {
 	fmt.Println("varVar: ", varVar)
 
 	rv := regexp.MustCompile(`^\s*?@R([0-9]{1,2}).*$`)
-	tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS).*$`)
+	tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS|ponggame.0|math.1|math.0|memory.0|output.6|output.5|output.4|output.3|output.2|output.1|output.0|screen.1|screen.2|screen.0).*$`)
+	// tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS|ponggame.0|math.[0-9]|memory.0|output.[0-9]).*$`)
+	// tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS|[a-z]+.[0-9]).*$`)
 	// gv := regexp.MustCompile(`^\s?@\D{1,}([A-Za-z_.$]*).*`)
 	// gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*).*`)
 	gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*[0-9]*).*`)
@@ -138,6 +152,9 @@ func main() {
 				// parse table thisThat
 				b = thisThat[strings.TrimSpace(v)]
 				// fmt.Println("this that: ", v)
+
+				// binary.WriteString(strings.TrimSpace(line))
+				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
 

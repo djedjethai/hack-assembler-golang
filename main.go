@@ -14,25 +14,27 @@ import (
 )
 
 var (
-	rj     = regexp.MustCompile(`^\s*?(.{1,3});([a-zA-Z]{1,4}).*$`)
-	rd     = regexp.MustCompile(`^\s*?([a-zA-Z]{1,4})=(.{1,3}).*$`)
-	binary strings.Builder
-	sb     strings.Builder
-	// codeStrr string
-	// vr      = regexp.MustCompile(`^@R[(0-15)]$`)
-	dv = regexp.MustCompile(`^\s*?\((.*)\).*$`)
-	// vv = regexp.MustCompile(`^\s*?@([A-Za-z.]+[^$_0-9])*$`)
-	vv = regexp.MustCompile(`^\s*?@([^SP|LCL|ARG|THAT|THIS][A-Za-z.]+[^$_0-9])*$`)
-	// vvcomplete = regexp.MustCompile(`^\s*?@([A-Za-z.]+\.[0-9])*$`)
-	// vvcomplete = regexp.MustCompile(`^.*@(ponggame\.0).*$`)
+	// first parsing regexp
+	rj         = regexp.MustCompile(`^\s*?(.{1,3});([a-zA-Z]{1,4}).*$`)
+	rd         = regexp.MustCompile(`^\s*?([a-zA-Z]{1,4})=(.{1,3}).*$`)
+	binary     strings.Builder
+	sb         strings.Builder
+	dv         = regexp.MustCompile(`^\s*?\((.*)\).*$`)
+	vv         = regexp.MustCompile(`^\s*?@([^SP|LCL|ARG|THAT|THIS][A-Za-z.]+[^$_0-9])*$`)
 	vvcomplete = regexp.MustCompile(`^.*@([A-Za-z.]+\.[0-9]).*$`)
-	// vvstop = regexp.MustCompile(`^\s*?R.*$`)
-	// le = regexp.MustCompile(`^\s*?\/\/.*$`)
-	le = regexp.MustCompile(`^\s*?(\/\/.*|\s*)$`)
-	// destVar          = make(map[string]string)
+	le         = regexp.MustCompile(`^\s*?(\/\/.*|\s*)$`)
+
+	// second parsing regexp
+	rv    = regexp.MustCompile(`^\s*?@R([0-9]{1,2}).*$`)
+	tthat = regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS|ponggame.0|math.1|math.0|memory.0|output.6|output.5|output.4|output.3|output.2|output.1|output.0|screen.1|screen.2|screen.0).*$`)
+	gv    = regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*[0-9]*).*`)
+	ga    = regexp.MustCompile(`^\s*?@(\d*).*`)
+
 	varVar           = make(map[string]string)
 	countDestVar int = 0 // start at 0
 	countVarVar  int = 0 // start at 0
+	v            string
+	b            string
 )
 
 func main() {
@@ -41,7 +43,6 @@ func main() {
 	cJump := tableParser("./tables/cJump.txt")
 	rVar := tableParser("./tables/rVariable.txt")
 	thisThat := tableParser("./tables/thisThatTable.txt")
-	// fmt.Println(cJump)
 
 	// parse progTest
 	// prog, _ := filepath.Abs("./progTest/Add.asm")
@@ -57,171 +58,96 @@ func main() {
 	progData, _ := ioutil.ReadFile(prog)
 	progText := string(progData)
 
-	// first parse file to identify var
+	// first parse file to identify various var and addresses
 	for _, line := range strings.Split(progText, "\n") {
 
 		if len(line) > 0 {
-			fmt.Println("grrrr: ================== ", line)
-			// get destination var
 			if dv.MatchString(line) {
-				fmt.Println("dv match: ", line)
+				// get destination var
 				d := dv.FindAllStringSubmatch(line, -1)[0][1]
 				// add to table Var
 				varVar[strings.TrimSpace(d)] = completeBitsFront(strconv.FormatInt(int64(countDestVar), 2), 16) // in binary
-				// get named var
 			} else if vv.MatchString(line) {
-				// fmt.Println("allo")
+				// get named var
 				v := vv.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("alala: ", v)
 				// check if exist in table Var
 				if _, ok := varVar[strings.TrimSpace(v)]; !ok {
 					varVar[strings.TrimSpace(v)] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
 					countVarVar++
 				}
-				// fmt.Println("get named var count: ", countDestVar)
 				countDestVar++
 
 			} else if vvcomplete.MatchString(line) {
-				fmt.Println("allo")
-				v := vvcomplete.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("alalaComplete: ", v)
-				// check if exist in table Var
-				if _, ok := varVar[strings.TrimSpace(v)]; !ok {
-					varVar[strings.TrimSpace(v)] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
-					// countVarVar++
-				}
-				fmt.Println("get named var count: ", countDestVar)
+				// constant, do nothing with them during first parsing
+				// feel kind of problem with course assembler
+				// as the value of these constant change sometime...
 				countDestVar++
 
-				// } else if vvcomplete.MatchString(line) {
-				// 	// fmt.Println("allo")
-				// 	v := vvcomplete.FindAllStringSubmatch(line, -1)[0][1]
-				// 	fmt.Println("alalaComplete: ", v)
-				// 	// check if exist in table Var
-				// 	if _, ok := varVar[strings.TrimSpace(v)]; !ok {
-				// 		varVar[strings.TrimSpace(v)] = completeBitsFront(strconv.FormatInt(int64(countVarVar), 2), 16) // in binary
-				// 		// countVarVar++
-				// 	}
-				// 	// fmt.Println("get named var count: ", countDestVar)
-				// 	countDestVar++
-
 			} else if le.MatchString(line) {
-				fmt.Println("line empty oor comm")
+				// fmt.Println("line empty oor comm")
 
 			} else {
-				// fmt.Println("else: ", line)
-				// fmt.Println("in else count: ", countDestVar)
 				countDestVar++
 			}
 		}
 	}
-	// fmt.Println(destVar)
-	fmt.Println("varVar: ", varVar)
 
-	rv := regexp.MustCompile(`^\s*?@R([0-9]{1,2}).*$`)
-	tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS|ponggame.0|math.1|math.0|memory.0|output.6|output.5|output.4|output.3|output.2|output.1|output.0|screen.1|screen.2|screen.0).*$`)
-	// tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS|ponggame.0|math.[0-9]|memory.0|output.[0-9]).*$`)
-	// tthat := regexp.MustCompile(`^\s*?@(SP|LCL|ARG|THAT|THIS|[a-z]+.[0-9]).*$`)
-	// gv := regexp.MustCompile(`^\s?@\D{1,}([A-Za-z_.$]*).*`)
-	// gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*).*`)
-	gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*[0-9]*).*`)
-	// gv := regexp.MustCompile(`^\s*?@(\D[A-Za-z._$]*[.0-9]*).*`)
-	ga := regexp.MustCompile(`^\s*?@(\d*).*`)
-	var v string
-	var b string
-
-	// ponggame := regexp.MustCompile(`^@ponggame.0*`)
+	// second parsing set the binary file
 	for _, line := range strings.Split(progText, "\n") {
 		if len(line) > 0 {
-			// get variable @Rn
 			if rv.MatchString(line) {
-
+				// get variable @Rn
 				v = rv.FindAllStringSubmatch(line, -1)[0][1]
 				// parse table R
 				b = rVar[strings.TrimSpace(v)]
-				// fmt.Println("endd: ", b)
-				// add b to string
-				// binary.WriteString(strings.TrimSpace(line))
-				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
-				// get SP/LCL/ARG etc...
-			} else if tthat.MatchString(line) {
 
+			} else if tthat.MatchString(line) {
+				// get the constant SP/LCL/ARG etc...
 				v = tthat.FindAllStringSubmatch(line, -1)[0][1]
 				// parse table thisThat
 				b = thisThat[strings.TrimSpace(v)]
-				// fmt.Println("this that: ", v)
-
-				// binary.WriteString(strings.TrimSpace(line))
-				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
 
 			} else if gv.MatchString(line) {
 				// get var
 				v = gv.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("before binary match for var: ", v)
 				// parse table Var
 				b := varVar[strings.TrimSpace(v)]
-				fmt.Println("binary match for var: ", b)
-				// add b to string
-				// binary.WriteString(strings.TrimSpace(line))
-				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
-				// get address from @num
+
 			} else if ga.MatchString(line) {
+				// get address from @num
 				v = ga.FindAllStringSubmatch(line, -1)[0][1]
-				fmt.Println("in get addresses: ", v)
 				vi, _ := strconv.Atoi(strings.TrimSpace(v))
 				b = completeBitsFront(strconv.FormatInt(int64(vi), 2), 16) // in binary
-				// fmt.Println("in get addresses ni bin: ", b)
-				// binary.WriteString(strings.TrimSpace(line))
-				// binary.WriteString("\n")
 				binary.WriteString(b)
 				binary.WriteString("\n")
-				// get binary from jumping command (with ;)
+
 			} else if rj.MatchString(line) {
+				// get binary from jumping command (with ;)
 				b = assembleJump(line, sb, cInstruction, cJump)
-				// fmt.Println("juummp: !!!!! ", b)
-				// binary.WriteString(strings.TrimSpace(line))
-				// binary.WriteString("\n")
 				binary.WriteString(b)
-				// get binary from no Jumping command (with =)
+
 			} else if rd.MatchString(line) {
+				// get binary from no Jumping command (with =)
 				b = assembleNoJump(line, sb, cInstruction, cDestination)
-				// fmt.Println("no jummmppp: ", b)
-				// binary.WriteString(strings.TrimSpace(line))
-				// binary.WriteString("\n")
 				binary.WriteString(b)
 			} else {
-				fmt.Println("in else :::", line)
+				// nothing to do on remainings line
 			}
 		}
 	}
 	fmt.Println("Binaries")
-	// fmt.Println(varVar)
 	codeStrr := binary.String()
-	// fmt.Println(codeStrr)
 	codeBin := []byte(codeStrr)
 	if err := ioutil.WriteFile("Add.hack", codeBin, 0777); err != nil {
 		log.Fatal(err)
 	}
 }
-
-// func assembleAddress(line string, sb strings.Builder) string {
-// 	i, err := strconv.Atoi(strings.TrimSpace(line[1:]))
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	b := completeBitsFront(strconv.FormatInt(int64(i), 2), 16)
-// 	// fmt.Println(reflect.TypeOf(b))
-// 	sb.WriteString(b)
-// 	sb.WriteString("\n")
-//
-// 	return sb.String()
-// }
 
 //
 func assembleJump(line string, sb strings.Builder, cInstruction map[string]string, cJump map[string]string) string {

@@ -36,11 +36,6 @@ var (
 )
 
 func main() {
-	cInstruction := tableParser("./tables/cInstructions.txt")
-	cDestination := tableParser("./tables/cInstDestination.txt")
-	cJump := tableParser("./tables/cJump.txt")
-	rVar := tableParser("./tables/rVariable.txt")
-	thisThat := tableParser("./tables/thisThatTable.txt")
 
 	// parse progTest
 	// prog, _ := filepath.Abs("./progTest/Add.asm")
@@ -57,6 +52,20 @@ func main() {
 	progText := string(progData)
 
 	// first parse file to identify various var and addresses
+	firstParseSetVariousVar(progText)
+
+	// second parsing set the binary file
+	secondParseSetBinaries(progText)
+
+	fmt.Println("Binaries")
+	codeStrr := binary.String()
+	codeBin := []byte(codeStrr)
+	if err := ioutil.WriteFile("Add.hack", codeBin, 0777); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func firstParseSetVariousVar(progText string) {
 	for _, line := range strings.Split(progText, "\n") {
 
 		if len(line) > 0 {
@@ -89,8 +98,15 @@ func main() {
 			}
 		}
 	}
+}
 
-	// second parsing set the binary file
+func secondParseSetBinaries(progText string) {
+	cInstruction := tableParser("./tables/cInstructions.txt")
+	cDestination := tableParser("./tables/cInstDestination.txt")
+	cJump := tableParser("./tables/cJump.txt")
+	rVar := tableParser("./tables/rVariable.txt")
+	thisThat := tableParser("./tables/thisThatTable.txt")
+
 	for _, line := range strings.Split(progText, "\n") {
 		var v string
 		var b string
@@ -141,11 +157,5 @@ func main() {
 				// nothing to do on remainings line
 			}
 		}
-	}
-	fmt.Println("Binaries")
-	codeStrr := binary.String()
-	codeBin := []byte(codeStrr)
-	if err := ioutil.WriteFile("Add.hack", codeBin, 0777); err != nil {
-		log.Fatal(err)
 	}
 }
